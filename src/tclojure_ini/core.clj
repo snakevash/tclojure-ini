@@ -67,7 +67,15 @@
         (if (nil? key)
           (recur (rest xs)
                  (assoc m (first x) (second x))
-                 key))))))
+                 key)
+          (recur (rest xs)
+                 (assoc-in m [key (first x)]
+                           (second x))
+                 key))
+        (recur (rest xs)
+               (assoc m x {})
+               x))
+      m)))
 
 (defn read-ini
   "
@@ -90,5 +98,7 @@
     (with-open [r (io/reader in)]
       (->> (line-seq r)
            (map #(strip-comment % comment-char allow-comments-anywhere?))
-           (remove ()))))
+           (remove ())
+           (map #(parse-line % kw trim))
+           mapify)))
   )
