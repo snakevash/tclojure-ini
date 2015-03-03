@@ -39,6 +39,36 @@
 ;; (neg? 0) false
 ;; (neg? 1) false
 
+;; s 字符串
+;; chr 注释字符
+;; allow-anywhere? 注释是否可以在任何地方
+;; 注释在任何地方可能的意思就是 值里面会出现;符号
+(defn- strip-comment [s chr allow-anywhere?]
+  ;; 取得注释的位置
+  (let [n (.indexOf s (int chr))]
+    ;; 处理位置 是否是小于0 是否可以任何地方都有注释
+    (if (and (not (neg? n))
+             (or allow-anywhere?
+                 (zero? n)))
+      ;; 截取注释之前的
+      (subs s 0 n)
+      ;; 整个字符串都返回
+      s)))
+
+;; (strip-comment "abc;eeee" \; true) "abc"
+;; (strip-comment "eeee;aaaa" \; false) "eeee;aaaa"
+;; (strip-comment ";abcdefgh" \; true) ""
+;; (strip-comment ";abcdefgh" \; false) ”“
+
+(defn- mapify [coll]
+  (loop [xs coll m {} key nil]
+    (if-let [x (first coll)]
+      (if (vector? x)
+        (if (nil? key)
+          (recur (rest xs)
+                 (assoc m (first x) (second x))
+                 key))))))
+
 (defn read-ini
   "
   读取一个.ini文件 转化到clojure map
@@ -55,5 +85,10 @@
               allow-comments-anywhere? true
               comment-char \;}}]
   {:pre [(char? comment-char)]}
-  (let )
+  (let [kw (if keywordize? keyword identity)
+        trim (if trim? s/trim identity)]
+    (with-open [r (io/reader in)]
+      (->> (line-seq r)
+           (map #(strip-comment % comment-char allow-comments-anywhere?))
+           (remove ()))))
   )
