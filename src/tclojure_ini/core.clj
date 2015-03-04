@@ -60,10 +60,17 @@
 ;; (strip-comment ";abcdefgh" \; true) ""
 ;; (strip-comment ";abcdefgh" \; false) ”“
 
+;; 参数示例
+#_([database] server=127.0.0.1 port=3306 database=company table=user)
 (defn- mapify [coll]
-  (loop [xs coll m {} key nil]
-    (if-let [x (first coll)]
+  (loop [xs coll
+         m {}
+         key nil]
+    ;; 集合的第一个元素
+    (if-let [x (first xs)]
+      ;; 如果是vector
       (if (vector? x)
+        ;; 是否为空
         (if (nil? key)
           (recur (rest xs)
                  (assoc m (first x) (second x))
@@ -77,13 +84,20 @@
                x))
       m)))
 
+(def users [{:name "James" :age 26} {:anme "John" :age 43}])
+(assoc-in users [1 :age] 1)
+
 (defn read-ini
   "
   读取一个.ini文件 转化到clojure map
 
   选择参数:
-
+  - keywordize? (默认为true) 章节和键是否转换为关键字
+  - trim? (默认为true) 是否去空格
+  - allow-comments-anywhere? (默认为true) 注释可以出现在任何地方
+  - comment-char (注释字符 \\;)
   "
+  ;; in 为配置文件名称(包含路径) 后面是默认的配置条件
   [in & {:keys [keywordize?
                 trim?
                 allow-comments-anywhere?
@@ -92,13 +106,23 @@
               trim? true
               allow-comments-anywhere? true
               comment-char \;}}]
+  ;; 函数前置参数一定要字符
   {:pre [(char? comment-char)]}
+  ;; kw trim 是根据配置决定是否启用
   (let [kw (if keywordize? keyword identity)
         trim (if trim? s/trim identity)]
+    ;; 确保文件最后是关闭的
     (with-open [r (io/reader in)]
+      ;; 惰化序列
+      ;; 过滤注释
+      ;; 过滤空行
+      ;; 逐行解析
+      ;; 格式化结果
       (->> (line-seq r)
            (map #(strip-comment % comment-char allow-comments-anywhere?))
-           (remove ())
+           (remove (fn [s] (every? #(Character/isWhitespace %) s)))
+           #_([database] server=127.0.0.1 port=3306 database=company table=user)
            (map #(parse-line % kw trim))
-           mapify)))
-  )
+           mapify))))
+;; (read-ini "setting.ini")
+;; {"database" {"table" "user" "database" "company" "port" "3306"}}
