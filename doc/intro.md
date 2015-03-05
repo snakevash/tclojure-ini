@@ -1,3 +1,3 @@
-# Introduction to tclojure-ini
+# 介绍 tclojure-ini
 
-TODO: write [great documentation](http://jacobian.org/writing/what-to-write/)
+[jonase/clojure-ini](https://github.com/jonase/clojure-ini)

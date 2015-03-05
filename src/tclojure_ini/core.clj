@@ -61,7 +61,7 @@
 ;; (strip-comment ";abcdefgh" \; false) ”“
 
 ;; 参数示例
-#_([database] server=127.0.0.1 port=3306 database=company table=user)
+;; (database [server 127.0.0.1] [port 3306] [database company] [table user])
 (defn- mapify [coll]
   (loop [xs coll
          m {}
@@ -72,20 +72,26 @@
       (if (vector? x)
         ;; 是否为空
         (if (nil? key)
+          ;; 如果章节名称是空的
+          ;; 那就直接返回一个vector
           (recur (rest xs)
                  (assoc m (first x) (second x))
                  key)
+          ;; 修改相应章节里面的内容
           (recur (rest xs)
                  (assoc-in m [key (first x)]
                            (second x))
                  key))
+        ;; 保存为解析的余下
+        ;; 增加一个新的章节到map里面
+        ;; 章节名称
         (recur (rest xs)
                (assoc m x {})
                x))
       m)))
 
-(def users [{:name "James" :age 26} {:anme "John" :age 43}])
-(assoc-in users [1 :age] 1)
+;; (def users [{:name "James" :age 26} {:anme "John" :age 43}])
+;; (assoc-in users [1 :age] 1)
 
 (defn read-ini
   "
@@ -123,6 +129,7 @@
            (remove (fn [s] (every? #(Character/isWhitespace %) s)))
            #_([database] server=127.0.0.1 port=3306 database=company table=user)
            (map #(parse-line % kw trim))
+           println
            mapify))))
-;; (read-ini "setting.ini")
+(read-ini "setting.ini")
 ;; {"database" {"table" "user" "database" "company" "port" "3306"}}
